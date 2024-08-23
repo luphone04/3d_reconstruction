@@ -36,13 +36,13 @@ output = output[pad:-pad, pad:-pad]
 image = image.crop((pad, pad, image.width - pad, image.height - pad))
 
 # Visualize the Prediction
-fig, ax = plt.subplots(1, 2)
-ax[0].imshow(image)
-ax[0].tick_params(left=False, bottom=False, labelleft=False, labelbottom=False)
-ax[1].imshow(output, cmap='plasma')
-ax[1].tick_params(left=False, bottom=False, labelleft=False, labelbottom=False)
-plt.tight_layout()
-plt.pause(5)
+#fig, ax = plt.subplots(1, 2)
+#ax[0].imshow(image)
+#ax[0].tick_params(left=False, bottom=False, labelleft=False, labelbottom=False)
+#ax[1].imshow(output, cmap='plasma')
+#ax[1].tick_params(left=False, bottom=False, labelleft=False, labelbottom=False)
+#plt.tight_layout()
+#plt.pause(5)
 
 ### POINT CLOUD GENERATION ###
 # preparing the depth image for open3d
@@ -66,7 +66,7 @@ pcd_raw = o3d.geometry.PointCloud.create_from_rgbd_image(rgbd_image, camera_intr
 
 # Post-Processing the 3d-point cloud
 # outliers removal
-cl, ind = pcd_raw.remove_statistical_outlier(nb_neighbors=20, std_ratio=6.0)
+cl, ind = pcd_raw.remove_statistical_outlier(nb_neighbors=20, std_ratio=20.0)
 pcd = pcd_raw.select_by_index(ind)
 
 # estimate normals
@@ -78,4 +78,22 @@ R = pcd.get_rotation_matrix_from_xyz((np.pi, 0, 0))  # Rotate 180 degrees around
 pcd.rotate(R, center=(0, 0, 0))
 
 # Visualize the rotated point cloud
-o3d.visualization.draw_geometries([pcd])
+# o3d.visualization.draw_geometries([pcd])
+
+
+# Surface Reconstruction
+mesh = o3d.geometry.TriangleMesh.create_from_point_cloud_poisson(pcd,
+                                                                 depth = 7,
+                                                                 n_threads = 1)[0]
+
+# rotahte the mesh
+rotation = mesh.get_rotation_matrix_from_xyz((np.pi, 0, 0))
+mesh.rotate(rotation, center=(0,0,0))
+
+#Visualize the mesh
+o3d.visualization.draw_geometries([mesh], mesh_show_back_face=True)
+
+
+# 3D MESH Export
+o3d.io.write_triangle_mesh("Results/office.ply", mesh)
+
