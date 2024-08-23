@@ -83,7 +83,7 @@ pcd.rotate(R, center=(0, 0, 0))
 
 # Surface Reconstruction
 mesh = o3d.geometry.TriangleMesh.create_from_point_cloud_poisson(pcd,
-                                                                 depth = 7,
+                                                                 depth = 10,
                                                                  n_threads = 1)[0]
 
 # rotahte the mesh
